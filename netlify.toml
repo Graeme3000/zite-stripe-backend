@@ -1,3 +1,16 @@
 [build]
-  functions = "netlify/functions"
-  publish = "public"
+  # No build command needed for serverless functions only
+  command = ""
+  # Set publish to the root or create an empty public folder
+  publish = "."
+
+[functions]
+  # Your serverless functions directory
+  directory = "netlify/functions"
+
+# Environment variables (already configured in Netlify UI)
+# These are just for reference
+# [build.environment]
+#   STRIPE_SECRET_KEY = ""
+#   VITE_STRIPE_PUBLISHABLE_KEY = ""
+#   VITE_STRIPE_SECRET_KEY = ""
