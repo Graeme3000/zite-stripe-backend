@@ -1,7 +1,6 @@
-// create-checkout-session.js
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Set in Netlify env vars
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Add your Stripe secret key in Netlify env vars
 const ALLOWED_ORIGIN = "https://hcj6unazv1.zite.so"; // Your Zite app origin
 
 export async function handler(event, context) {
@@ -22,9 +21,7 @@ export async function handler(event, context) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-      },
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: "Method Not Allowed",
     };
   }
@@ -33,16 +30,29 @@ export async function handler(event, context) {
     // Parse line items from request body
     const { lineItems } = JSON.parse(event.body);
 
+    // Validate lineItems
+    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
+      return {
+        statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          error: "lineItems is required and must be a non-empty array",
+        }),
+      };
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: lineItems, // Example: [{ price: "price_123", quantity: 1 }]
+      line_items: lineItems,
       success_url: "https://vetgo-app.netlify.app/success",
       cancel_url: "https://vetgo-app.netlify.app/cancel",
     });
 
-    // Respond with session ID and CORS headers
     return {
       statusCode: 200,
       headers: {
@@ -52,7 +62,6 @@ export async function handler(event, context) {
       body: JSON.stringify({ id: session.id }),
     };
   } catch (err) {
-    // Error response with CORS headers
     return {
       statusCode: 500,
       headers: {
