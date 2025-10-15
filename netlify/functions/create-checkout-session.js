@@ -27,3 +27,17 @@ export async function handler(event, context) {
     return { statusCode: 500, body: err.message };
   }
 }
+
+const response = await fetch(
+  "https://vetgo-app.netlify.app/.netlify/functions/create-checkout-session",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      lineItems: [{ price: "price_123", quantity: 1 }],
+    }),
+  }
+);
+
+const data = await response.json();
+const sessionId = data.id;
