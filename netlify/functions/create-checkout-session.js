@@ -1,43 +1,37 @@
+// File: create-checkout-session.js
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-08-16",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Add your secret key to Netlify env vars
+const ALLOWED_ORIGIN = "https://hcj6unazv1.zite.so"; // Zite app origin
 
 export async function handler(event, context) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
-
   try {
-    const data = JSON.parse(event.body);
+    const { lineItems } = JSON.parse(event.body);
+
     const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
       mode: "payment",
-      line_items: [{ price: data.priceId, quantity: 1 }],
-      success_url: "https://your-zite-app.zite.xyz/success",
-      cancel_url: "https://your-zite-app.zite.xyz/cancel",
+      line_items: lineItems,
+      success_url: "https://vetgo-app.netlify.app/success",
+      cancel_url: "https://vetgo-app.netlify.app/cancel",
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ url: session.url }),
+      headers: {
+        "Access-Control-Allow-Origin": "https://hcj6unazv1.zite.so",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: session.id }),
     };
   } catch (err) {
-    console.error(err);
-    return { statusCode: 500, body: err.message };
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "https://hcj6unazv1.zite.so",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 }
-
-const response = await fetch(
-  "https://vetgo-app.netlify.app/.netlify/functions/create-checkout-session",
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      lineItems: [{ price: "price_123", quantity: 1 }],
-    }),
-  }
-);
-
-const data = await response.json();
-const sessionId = data.id;
