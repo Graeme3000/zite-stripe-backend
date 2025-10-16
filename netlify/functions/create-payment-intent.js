@@ -24,7 +24,7 @@ export async function handler(event, context) {
   }
 
   try {
-    const { amount, currency = "usd" } = JSON.parse(event.body);
+    const { amount, currency = "cad" } = JSON.parse(event.body);
 
     if (!amount) {
       return {
